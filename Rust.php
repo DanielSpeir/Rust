@@ -671,7 +671,7 @@ class Rust extends RustyTools
             // like "before", "response", etc.
             $aRestMethods = array('get', 'post', 'delete', 'put', 'patch');
 
-            /**
+            /*
             | Case 1: The current sMethod is not a faux Request Method, and the Request Method of the page
             |         matches the defined sMethod, then it is a relevant REST method.
             | Case 2: The current sMethod IS a faux Request Method, we consider it to be Relevant as well.
