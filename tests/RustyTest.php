@@ -20,6 +20,11 @@ class RustyTest extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        // Defining the Request URI to satisfy Unit Testing. This variable is not used
+        // during the build process in a unit test like it would be on a production application,
+        // so it's value is trivial.
+        $_SERVER['REQUEST_URI'] = 'satisfyUnitTest';
+
         // Ob Start
         if ($this->bCleanOutput) {
             ob_start();
@@ -59,7 +64,7 @@ class RustyTest extends PHPUnit_Framework_TestCase
      */
     public function testServeWithNoRoutes()
     {
-        $this->assertTrue($this->oInstance->serve());
+        $this->assertTrue($this->oInstance->serve('/'));
     }
 
     /**
