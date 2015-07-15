@@ -1,6 +1,6 @@
 # Rust
 
-Rust is a lightweight, but full-bodied, router for PHP 5.3+. 
+Rust is a simple, full-bodiedvrouter for PHP 5.5+.
 
 ## Goals
 
