@@ -6,8 +6,6 @@
  * Time: 8:15 AM
  */
 
-require('../Rust.php');
-
 class RustyTest extends PHPUnit_Framework_TestCase
 {
 
