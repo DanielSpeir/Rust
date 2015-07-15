@@ -6,4 +6,5 @@ php:
   - hhvm
   - nightly
 script:
-  - phpunit tests/RustyTest.php
+  - cd tests
+  - phpunit RustyTest
