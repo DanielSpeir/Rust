@@ -1,4 +1,4 @@
-# Rust
+# Rust [![Build Status](https://travis-ci.org/DanielSpeir/Rust.svg?branch=master)](https://travis-ci.org/DanielSpeir/Rust)
 
 Rust is a simple, full-bodiedvrouter for PHP 5.5+.
 
