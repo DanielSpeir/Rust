@@ -229,7 +229,7 @@ class RustyTest extends PHPUnit_Framework_TestCase
     public function testRenderView(){
         $this->oInstance->route('base', function(){
             $this->response(function(){
-                return self::$aTestCase[0] = $this->renderView('view');
+                return self::$aTestCase[0] = $this->renderView('tests/view');
             });
         });
         $this->oInstance->serve('base');
@@ -414,12 +414,12 @@ class RustyTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($this->oInstance->isPut());
     }
 
-    public function testServeFromDirectory(){
+    public function testControllerRender(){
         // Flush current buffer
         ob_flush();
 
         $this->oInstance->route('base', function(){
-            $this->controller('controllers/myController.php');
+            $this->controller('tests/controllers/myController.php');
             $this->get('get');
             $this->post('post');
             $this->put('put');

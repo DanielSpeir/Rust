@@ -1,3 +1,3 @@
 <?php
 
-require('../Rust.php');
+require('Rust.php');
