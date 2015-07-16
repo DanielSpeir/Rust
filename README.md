@@ -93,16 +93,16 @@ The usage of Response Methods is confined directly to the Route Scope, and are u
 
 The complete list of Response Methods is: 
 
-* get
-* post
-* put
-* patch
-* delete
-* response
-* before
-* beforeAll
-* beforeChildren
-* controller
+* `get()`
+* `post()`
+* `put()`
+* `patch()`
+* `delete()`
+* `response()`
+* `before()`
+* `beforeAll()`
+* `beforeChildren()`
+* `controller()`
 
 ###### **>> Flash Forward:** The controller method is not so much a Response Method, as it is a Response Method *manipulator*. More on this later.
 
@@ -283,6 +283,8 @@ $router->group('blog', function(){
 });
 ```
 
+Parameter casts can be cleared and reset at any point in the routing process by using the `$router->cleanCastParams()` function.
+
 #####Option 2: Hungarian Notation Casting
 There is one more option for casting parameters in Rust called Hungarian Notation Casting. It employs the use of a Hungarian Naming Convention to
 cast parameter types for a specific Route, and is the *most most* specific option, as it will override ALL castParam levels.
@@ -350,7 +352,7 @@ $router->route(':otherwise', function(){
 
 Also like the ':all' route, the ':otherwise' route cannot be accessed via URI. When no Otherwise Route is defined, Rust falls back to a "Death Message", which can be configured via Rust's 'config' method.
 
-######**>> Flash Forward**: Configuring Rust
+######**>> Flash Forward**: Rust configuration
 
 ----
 ###Rust Storage
@@ -426,8 +428,204 @@ $router->route('blog', function(){
 * path | string
 * variables | array
 
+The renderView function allows you to render template files directly from a Response Method. It accepts two arguments: a view path, and an array of variables to expose to that view, if any.
 
+The path argument assumes `.php`, so does no require you specify the file type; however, explicitly defining the file type will override Rust's assumption. The view's path will always be in relation to the route file. A view file on the same level as the route file could be rendered like so:
+
+```php
+$router->route('blog', function(){
+  $this->get(function(){
+    return $this->renderView('blog');
+    // Or, if it were an HTML file
+    return $this->renderView('blog.html');
+  });
+});
+```
+
+If the view file were located, for instance, in  a 'views' directory, we could use the **view_directory** config option to declare a path for Rust to prepend to our renderView path arguments, or declare the full path manually within the method. Either option works fine.
+
+###### **>> Flash Forward:** Rust configuration.
+
+```php
+$router->config([
+  'view_directory' => 'views';
+]);
+
+$router->route('blog', function(){
+  $this->get(function(){
+    // renders 'views/blog.php'
+    return $this->renderView('blog');
+    // Or, if view_directory is not set:
+    return $this->renderView('views/blog');
+  });
+});
+```
+
+In order to expose variables to a view, an array of defined variables must be passed to the second argument position of the renderView function as an associative array.
+```php
+array(
+  'first_name' => 'daniel',
+  'last_name' => 'speir'
+);
+```
+This associative array would result in these variables being exposed to your view:
+#####  View File
+```php
+<h1>
+  <?php echo $first_name . ' ' . $last_name; ?>
+</h1>
+```
+
+PHP has two functions to make generating this associative array easy: `get_defined_vars()` and `compact().` 
+
+```php
+$router->route('blog/:id', function(){
+  $this->get(function($id){
+    // Using get_defined_vars()
+    return $this->renderView('blog', get_defined_vars());
+
+    // Using compact()
+    return $this->renderView('blog', compact('id'));
+  });
+});
+```
+In this case, both functions produce the same array; however, `get_defined_vars()` can produce undesirable results if there are more variables being defined within the Response Method Scope than you want exposed to the view. `compact()` is the safest choice for the job.
 
 ----
+### Helpers
+Helpers are public methods just like Utility Methods, but are not limited to any scope. Helpers can be used at any point or scope of the routing build. 
 
-# WORK IN PROGRESS ...
+* `isAjax()`
+* `liveRoute()`
+* `liveRouteParent()`
+* `isRoute()`
+* `isRouteParent()`
+* `isParent()`
+* `getQueryString()`
+* `setRequestMethod()`
+* `getRequestMethod()`
+* `isGet()`
+* `isPost()`
+* `isPut()`
+* `isPatch()`
+* `isDelete()`
+
+#### isAjax()
+
+#####No Arguments.
+
+Returns bool depending on whether or not endpoint was requested via Ajax. Note: this function employs the use of the HTTP_X_REQUESTED_WITH server variable, which some servers have been known to not provide. Ensure your server uses this variable before relying on this method.
+```php
+if ($router->isAjax()) { 
+  // render json data
+}
+```
+
+#### liveRoute()
+
+#####No Arguments.
+Returns route name rendered by Rust. For instance, 'blog/:id' or 'blog/new'.
+
+```php
+$this->liveRoute();
+```
+
+#### liveRouteParent()
+
+#####No Arguments.
+Returns parent route name rendered by Rust. For instance, 'blog'.
+
+```php
+$this->liveRouteParent();
+```
+
+#### isRoute()
+
+#####Available Arguments:
+* route name | string
+
+Returns true or false depending on if route name argument supplied matches the liveRoute().
+
+```php
+if ($this->isRoute('blog/:id')){
+  // do something
+}
+```
+
+#### isRouteParent()
+
+#####Available Arguments:
+* parent route name | string
+
+Returns true or false depending on if parent route name argument supplied matches the liveRouteParent().
+
+```php
+if ($this->isRouteParent('blog')){
+  // do something
+}
+```
+
+#### isParent()
+
+##### No Arguments.
+
+Returns true if `liveRoute()` and `liveParentRoute()` are identical. In other words, the live route is a parent route.
+
+```php
+if ($this->isParent()){
+  // do something
+}
+```
+
+#### getQueryString()
+
+#####Available Arguments:
+* query string index | string or bool | default: false
+
+With no argument, returns query string arguments as an associative array. With argument, returns value of query string variable provided.
+
+```php
+// Return full array
+$router->getQueryString();
+
+// Return one value
+$router->getQueryString('myVar');
+```
+
+#### setRequestMethod()
+
+#####Available Arguments:
+* request method | string
+
+Sets the value of the server's Request Method variable. Cast insensitive. 
+
+```php
+$router->setRequestMethod('post');
+```
+
+#### getRequestMethod()
+
+##### No Arguments.
+
+Returns the value of the server's Request Method variable.
+
+```php
+$router->getRequestMethod();
+```
+
+#### isGet(), isPost(), isPut(), isPatch(), isDelete()
+
+##### No Arguments.
+
+Each of these arguments returns true if the server's Request Method variable matches the respective method name.
+
+```php
+if ($this->isDelete()){
+  // do something
+}
+```
+----
+### Reverse Routing
+
+
+# WORK IN PROGESS
