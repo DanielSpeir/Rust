@@ -11,6 +11,8 @@ Rust is a simple, full-bodied router for PHP 5.4+.
 ## Example Usage
 
 ```php
+// Get router instance
+$router = Rust::getRouter();
 
 // Build 'blog' Parent Route
 $router->route('blog', function(){
@@ -43,6 +45,9 @@ $router->route('blog/:id', function(){
   });
   
 });
+
+// Build routes and serve to end user
+$router->serve();
 
 ```
 
@@ -381,9 +386,13 @@ $router->cleanStore();
 ```
 ----
 ### Utility Functions
-In Rust, Utility Functions are methods of the Rust class that can *only* be used within a Response Method Scope. Using them outside that scope will have no affect in a production environment. In a dev environment, it will throw an error. There are three of these: json, redirect, and renderView. 
+In Rust, Utility Functions are methods of the Rust class that can *only* be used within a Response Method Scope. Using them outside that scope will have no affect in a production environment. In a dev environment, it will throw an error. 
 
 ###### **>> Flash Forward:** Setting environment type in Rust.
+
+* `json()`
+* `redirect()`
+* `renderView()`
 
 #### json()
 
@@ -489,11 +498,11 @@ $router->route('blog/:id', function(){
   });
 });
 ```
-In this case, both functions produce the same array; however, `get_defined_vars()` can produce undesirable results if there are more variables being defined within the Response Method Scope than you want exposed to the view. `compact()` is the safest choice for the job.
+In this case, both functions produce the same array; however, `get_defined_vars()` can produce undesirable results if there are more variables being defined within the Response Method Scope than you want exposed to the view. `compact()` is usually the safest choice for the job.
 
 ----
 ### Helpers
-Helpers are public methods just like Utility Methods, but are not limited to any scope. Helpers can be used at any point or scope of the routing build. 
+Helpers are public methods just like Utility Methods, but are not limited to any scope. Helpers can be used at any point or within any scope of the routing build. 
 
 * `isAjax()`
 * `liveRoute()`
@@ -514,7 +523,7 @@ Helpers are public methods just like Utility Methods, but are not limited to any
 
 #####No Arguments.
 
-Returns bool depending on whether or not endpoint was requested via Ajax. Note: this function employs the use of the HTTP_X_REQUESTED_WITH server variable, which some servers have been known to not provide. Ensure your server uses this variable before relying on this method.
+Returns true if endpoint was requested via Ajax. Note: this function employs the use of the HTTP_X_REQUESTED_WITH server variable, which some servers have been known to not provide. Ensure your server uses this variable before relying on this method.
 ```php
 if ($router->isAjax()) { 
   // render json data
@@ -544,7 +553,7 @@ $this->liveRouteParent();
 #####Available Arguments:
 * route name | string
 
-Returns true or false depending on if route name argument supplied matches the liveRoute().
+Returns true if route name argument supplied matches the liveRoute().
 
 ```php
 if ($this->isRoute('blog/:id')){
@@ -557,7 +566,7 @@ if ($this->isRoute('blog/:id')){
 #####Available Arguments:
 * parent route name | string
 
-Returns true or false depending on if parent route name argument supplied matches the liveRouteParent().
+Returns true if parent route name argument supplied matches the liveRouteParent().
 
 ```php
 if ($this->isRouteParent('blog')){
@@ -597,7 +606,7 @@ $router->getQueryString('myVar');
 #####Available Arguments:
 * request method | string
 
-Sets the value of the server's Request Method variable. Cast insensitive. 
+Sets the value of the server's Request Method variable. Case insensitive. 
 
 ```php
 $router->setRequestMethod('post');
@@ -625,7 +634,323 @@ if ($this->isDelete()){
 }
 ```
 ----
+### Config
+Rust's `config()` method accepts an associative array of specific key/value pairs that allow you to configure Rust to your application's needs. 
+
+```php
+$router->config([
+  'dev' => true,
+  'controller_directory' => 'controllers',
+  'view_directory' => 'views',
+  'death_message' => 'Page not found!'
+]);
+```
+
+#### All Config Options
+* all_route_file
+* build_all
+* controller_directory
+* controller_rust_object
+* death_message
+* dev
+* index_route_file
+* method_setter
+* otherwise_route_file
+* render_all_before_otherwise
+* set_request_method
+* unit_test
+* view_directory
+
+#### all_route_file, otherwise_route_file, index_route_file
+
+**Accepts**: string
+**Default**: all_route_file = '_all.php'
+**Default**: otherwise_route_file = '_otherwise.php'
+**Default**: index_route_file = '_index.php'
+
+The configuration options `all_route_file`, `otherwise_route_file`, and `index_route_file` allow you to define a specific filename you would like Rust's `serveFromDirectory()` method to use when building your All, Otherwise, and Index Routes. The default values are: 
+
+###### **>> Flash Forward**: Using Rust's `serveFromDirectory()` method.
+
+#### build_all
+
+**Accepts**: boolean
+**Default**: false
+
+The Rust routing class operates on a simple principal: build only what you need. Anytime a route from your application is requested, Rust builds the routes it deems necessary (these are called Relevant Routes), and then serves them to you. That is, if you've built a 'blog' route and an 'about_me' route, Rust only needs to have knowledge of one of these routes at any given time: the route requested via the URI. In the same vein, if you request the 'blog' route with a GET method, Rust doesn't need to have any knowledge of a POST or PUT method built within that route, as they are not being rendered or served. By employing this methodology, Rust is able to stay fast and efficient by building and supplying only the routes it deems relevant. 
+
+That said, the `build_all` configuration option overrides this principal in Rust. By setting this option to true, Rust will build all routes defined in your application, regardless of relevance. 
+
+***Note***: *this is not recommended for a production application, as it puts an unnecessary expense on your server. Use `build_all` only in a development environment.*
+
+#### controller_directory
+
+**Accepts**: string
+**Default**: none
+
+The `controller_directory` option allows you to specify the directory from which your controllers will be loaded. The value provided to the option will be prepended to all controllers declared throughout your application's routes. 
+
+```php
+$router->config([
+  'controller_directory' => 'controllers';
+]);
+
+$router->route('blog', function(){
+  $this->get(function(){
+	// Requires 'controllers/myCtrl.php'
+    $this->controller('myCtrl');
+  });
+});
+```
+
+####controller_rust_object
+
+**Accepts**: bool, string
+**Default**: 'rust'
+
+When using Rust's controller methods and reverse routing in your application, sometimes it's necessary to retrieve an instance of the Rust object within your controller class. By exposing a Rust object to your controllers, you're able to access all Rust Utility and Helper methods, as well as persist data within Rust's `store` object through your controllers. 
+
+By default, Rust uses a 'rust' variable to achieve this. 
+
+```php
+class blogController {
+
+  public function index(){
+    return $this->rust->json($data);
+  };
+
+}
+```
+
+The `controller_rust_object` option allows you to configure the name of that variable, or choose to not set it at all. A 'false' value will tell Rust to not set that object within your controller.
+
+####death_message
+
+**Accepts**: string
+**Default**: 'The requested route could not be rendered.'
+
+If for any reason a route is not able to be rendered, Rust will first look for an Otherwise Route to render in its place. If it can't find the Otherwise Route, it will fall back and print the `death_message` value. 
+
+####dev
+
+**Accepts**: boolean
+**Default**: false
+
+Rust is built to be a graceful routing system, and as such, Rust will always search for a way to gracefully die in the event of an error. For instance, if you were to use a Utility Function, which are confined to use only within a Response Method, outside of said method, Rust would simply ignore the declaration and continue through the build or render without a hiccup. However, In some cases you may want Rust to throw warnings whenever a method is not used in the intention it was meant to be. Setting the `dev` option to true will allow that.
+
+####method_setter
+
+**Accepts**: string
+**Default**: ':method'
+
+Since HTML form elements can only accept either a GET or POST 'method' attribute value, we have to trick the form into submitting via another Request Method like put, patch, or delete. The `method_setter` option allows you to define what form input name should be used when determining what Request Method should be set, and subsequently rendered, when submitting a form.
+
+```html
+<form method="POST">
+  <input type="hidden" name=":method" value="PATCH" />
+</form>
+```
+
+####render_all_before_otherwise
+
+**Accepts**: boolean
+**Default**: false
+
+Rust's All Route is a middleware route that is rendered before any other route in your application. The one exception to this rule is that the All Route, by default, will *not* render before the Otherwise Route. The `render_all_before_otherwise` option allows you to modify this behavior, if your application needs it.
+
+####set_request_method
+
+**Accepts**: boolean
+**Default**: true
+
+This option allows you to define whether or not you would like to utilize the functionality Rust provides via the `method_setter` option. If this is set to false, the `method_setter` option becomes moot.
+
+####unit_test
+
+**Accepts**: boolean
+**Default**: false
+
+The `unit_test` option is used exclusively when unit testing Rust. This options allows Rust to simulate certain behaviors that a browser would normally provide, and also prohibits Rust from halting a build or render after a graceful death in `dev` mode.
+
+Using this option outside of its intention will produce undesirable results.
+
+####view_directory
+
+**Accepts**: string
+**Default**: none
+
+The `view_directory` option allows you to specify the directory from which your views will be loaded. The value provided to the option will be prepended to all views declared throughout your application's routes. 
+
+```php
+$router->config([
+  'view_directory' => 'views';
+]);
+
+$router->route('blog', function(){
+  $this->get(function(){
+	  // Requires 'views/blog.php'
+	  return $this->renderView('blog');
+  });
+});
+```
+
+----
 ### Reverse Routing
 
+#### The Basics 
+Rust provides a very basic way of handling Reverse Routing via the `controller()` Response Method. Using the controller method within a Route Scope manipulates the way all subsequent Response Methods are rendered. For instance, in the scenario below the string argument would be printed to the browser when the route was requested and rendered. 
 
-# WORK IN PROGESS
+```php
+$router->route('blog', function(){
+  $this->get('Get Blogs');
+});
+```
+However, when we define a controller within a Route Scope, we're telling Rust to pipe control of the route to the controller we've defined. In the scenario below, the string argument would no longer be printed to the browser, but would refer to a method of your controller class that should be rendered on that request method. 
+
+##### Route file
+```php
+$router->route('blog/:id', function(){
+
+  $this->controller('blogController');
+  
+  /*
+    String will now refer to a controller method, 
+    and any arguments will be automatically passed
+    to that method.
+  */
+  $this->get('index');
+
+  // A Closure argument will not be affected by this
+  $this->post(function(){
+    // Will render normally
+  });
+  
+});
+```
+##### Controller file
+```php
+class blogController {
+
+  public function index($id){
+    // renders on Get request to 'blog' route
+  }
+
+}
+```
+
+#### The controller() method
+As mentioned in a previous section, the controller method is the only Response Method that can accept a maximum of two arguments. The first argument, the controller file, is required. The second argument, the controller class name, is only required if the controller file name and class name do not match. 
+
+Rust assumes a `.php` file extension for the first argument, so it is not a requirement to prepend it. Providing an extension will override Rust's assumption.
+
+#####blogController.php
+```php
+class blog {
+
+	// innards
+
+}
+```
+In this situation, the second controller argument would be required, as the file name and class name do not match. 
+```php
+$router->route('blog', function(){
+  $this->controller('blogController', 'blog');
+});
+```
+Note: the path to the controller file and the `.php` extension will not affect this behavior. For instance:
+```php
+$router->route('blog', function(){
+  $this->controller('app/controllers/blogController.php');
+});
+```
+Rust will still extract 'blogController' and assume it to be the class name if no second argument is provided.
+
+######**>> Flash Back:** Set a pre-defined controller path with the `controller_directory` config option.
+
+#### Using Rust in a controller
+
+
+Sometimes it's necessary to retrieve an instance of the Rust object within your controller class. By exposing a Rust object to your controllers, you're able to access all Rust Utility and Helper methods, as well as persist data within Rust's `store` object through your controllers. 
+
+By default, Rust uses a 'rust' variable to achieve this. 
+
+```php
+class blogController {
+
+  public function index(){
+    return $this->rust->json($data);
+  };
+
+}
+```
+######**>> Flash Back:**  Use the `controller_rust_object` config option to change this variable name.
+
+### Individual Route Files
+
+#### The Basics
+
+For a small-scale application, defining all of your routes within a single file is an easy and efficient way to control the routing in your application; however, with larger applications, this can become very unruly very quickly. Using Rust's `serveFromDirectory()` function can help you clean up and structure your application's routing into bite-sized, easily digestible chunks.
+
+```php
+// Get router instance
+$router = Rust::getRouter();
+
+// Define any configuration
+$router->config([
+  'view_directory' => 'views'
+]);
+
+// Serve from the 'routes' directory.
+$router->serveFromDirectory('routes');
+```
+
+#### Auto Namespacing
+
+Whenever a route is requested in your application, Rust will look to the 'routes' directory to find the file needed, require it, and build the contents. Because of this, the name of your route file must be identical to what you would define in a Namespace. 
+
+**All route files are required within a Namespace Scope.**
+
+##### routes/blog.php
+```php
+// Route: 'blog' (Option 1)
+$this->route('/', 'String Return');
+
+// Route: 'blog' (Option 2)
+$this->index('String Return');
+
+// Route: 'blog/new'
+$this->route('new', 'String Return');
+
+// Dynamic Route: 'blog/:id'
+$this->route(':id', 'String Return');
+```
+The example above is exactly identical to declaring routes arguments within a Namespace. The only difference being that Rust auto-namespaces all route files. That means that the `$this` context is immediately available to you within the route file. No extra work is required to retrieve that. 
+
+#### Sterile Route Files
+As you know, in Rust there are 3 Sterile Routes. That is, routes that cannot have children and cannot be defined within a namespace. These 3 routes are: The Index Route ('/'), the All Route, and the Otherwise Route. Because of this restriction, these 3 routes are *not* auto-namespaced when using Rust's serveFromDirectory method. Also, because of the nature of these routes, they use pre-defined file names so Rust knows what to require and render when they are requested. 
+
+**All route files are required within a Route Scope.**
+
+Index Route file: '_index.php'
+All Route file: '_all.php'
+Otherwise Route file: '_otherwise.php'
+
+######**>> Flash Back:** these pre-defined file names can be customized with the `index_route_file`, `all_route_file`, and `otherwise_route_file` config options.
+
+Instead of Sterile routes being auto-namespaced, they are instead "auto-routed". 
+
+#####routes/_index.php
+```php
+$this->get('Return this string to the Index Route.');
+```
+
+The example above is identical to this execution not using the serveFromDirectory method:
+
+```php
+$router->route('/', function(){
+  $this->get('Return this string to the Index Route.');
+});
+```
+
+Just like normal route files, the `$this` context is immediately available to Sterile Routes without any extra legwork. 
+
