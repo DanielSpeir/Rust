@@ -1,12 +1,6 @@
 # Rust [![Build Status](https://travis-ci.org/DanielSpeir/Rust.svg?branch=master)](https://travis-ci.org/DanielSpeir/Rust)
 
-Rust is a simple, full-bodied router for PHP 5.4+.
-
-## Goals
-
-* Unopinionated routing class.
-* Flexible enough to serve as a "drop-in" for a variety of applications.
-* Intuitive and efficient routing that moves and grows with your application.
+Rust is a full-featured router for PHP 5.4+.
 
 ## Example Usage
 
