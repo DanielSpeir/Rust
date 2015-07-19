@@ -2,6 +2,10 @@
 
 Rust is a full-featured router for PHP 5.4+ with Reverse Routing and RESTful API support.
 
+## Download Rust
+
+`composer require danielspeir/rust`
+
 ## Example Usage
 
 ```php
