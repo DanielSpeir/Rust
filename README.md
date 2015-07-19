@@ -1,4 +1,4 @@
-# Rust [![Build Status](https://travis-ci.org/DanielSpeir/Rust.svg?branch=master)](https://travis-ci.org/DanielSpeir/Rust)
+# Rust [![Build Status](https://travis-ci.org/DanielSpeir/Rust.svg?branch=master)](https://travis-ci.org/DanielSpeir/Rust) [![Latest Stable Version](https://poser.pugx.org/danielspeir/rust/v/stable)](https://packagist.org/packages/danielspeir/rust) [![Latest Unstable Version](https://poser.pugx.org/danielspeir/rust/v/unstable)](https://packagist.org/packages/danielspeir/rust) [![License](https://poser.pugx.org/danielspeir/rust/license)](https://packagist.org/packages/danielspeir/rust)
 
 Rust is a full-featured router for PHP 5.4+ with Reverse Routing and RESTful API support.
 
@@ -83,7 +83,7 @@ $router->index(function(){
 });
 ```
 
-######**>> Flash Forward:** Both of these methods are and can be used within a Route Namespace to define a Parent Route. 
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#the-namespace-scope)**  Both of these methods are and can be used within a Route Namespace to define a Parent Route. 
 
 -----
 ### The Response Method Scope
@@ -103,7 +103,7 @@ The complete list of Response Methods is:
 * `beforeChildren()`
 * `controller()`
 
-###### **>> Flash Forward:** The controller method is not so much a Response Method, as it is a Response Method *manipulator*. 
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#reverse-routing)** The controller method is not so much a Response Method, as it is a Response Method *manipulator*. 
 
 ##### Example Usage
 ```php
@@ -177,7 +177,7 @@ In a Parent Route Scope, 'beforeAll' would render before both the Parent Route a
 #### Method Overview: controller
 The controller method is the only Response Method than can accept a maximum of two arguments. The first argument being the controller file, and the second being the controller class. The second argument is only required if the controller class name is different than the name of the controller file. 
 
-###### **>> Flash Forward:** Controllers are covered in more depth in the Reverse Routing section.
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#reverse-routing)**   Controllers are covered in more depth in the Reverse Routing section.
 
 ```php
   $router->route('blog', function(){
@@ -208,7 +208,8 @@ When building Routes within the a Namespace, you can use either of the Index Rou
     
   });
 ```
-######**>> Flash Forward:** When using Rust's 'serveFromDirectory' function, all individual Route Files are auto-namespaced according to the name of the file.
+
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#individual-route-files-servefromdirectory)** When using Rust's 'serveFromDirectory' function, all individual Route Files are auto-namespaced according to the name of the file.
 
 ----
 ### Dynamic Routing
@@ -353,7 +354,7 @@ $router->route(':otherwise', function(){
 
 Also like the ':all' route, the ':otherwise' route cannot be accessed via URI. When no Otherwise Route is defined, Rust falls back to a "Death Message", which can be configured via Rust's 'config' method.
 
-######**>> Flash Forward**: Use the `death_message` config option to customize your application's fallback error message.
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#config)** Use the `death_message` config option to customize your application's fallback error message.
 
 #### The Index Route 
 The Index Route, even though it is not prepended with a colon and can be accessed via URI, is still considered to be Sterile, since it cannot accept direct Child Routes or be defined within a Namespace.
@@ -387,7 +388,7 @@ $router->cleanStore();
 ### Utility Functions
 In Rust, Utility Functions are methods of the Rust class that can *only* be used within a Response Method Scope. Using them outside that scope will have no affect in a production environment. In a dev environment, it will throw an error. 
 
-###### **>> Flash Forward:** Setting environment type in Rust.
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#dev)**  Setting environment type in Rust.
 
 * `json()`
 * `redirect()`
@@ -452,7 +453,7 @@ $router->route('blog', function(){
 
 If the view file were located, for instance, in  a 'views' directory, we could use the **view_directory** config option to declare a path for Rust to prepend to our renderView path arguments, or declare the full path manually within the method. Either option works fine.
 
-###### **>> Flash Forward:** Rust configuration.
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#config)**   Rust configuration.
 
 ```php
 $router->config([
@@ -672,7 +673,7 @@ $router->config([
 
 The configuration options `all_route_file`, `otherwise_route_file`, and `index_route_file` allow you to define a specific filename you would like Rust's `serveFromDirectory()` method to use when building your All, Otherwise, and Index Routes. The default values are: 
 
-###### **>> Flash Forward**: Using Rust's `serveFromDirectory()` method.
+######**[>> Flash Forward:](https://github.com/DanielSpeir/Rust#individual-route-files-servefromdirectory)**  Using Rust's `serveFromDirectory()` method.
 
 #### build_all
 
@@ -879,7 +880,7 @@ $router->route('blog', function(){
 ```
 Rust will still extract 'blogController' and assume it to be the class name if no second argument is provided.
 
-######**>> Flash Back:** Set a pre-defined controller path with the `controller_directory` config option.
+######**[>> Flash Back:](https://github.com/DanielSpeir/Rust#controller_directory)**  Set a pre-defined controller path with the `controller_directory` config option.
 
 #### Using Rust in a controller
 
@@ -897,7 +898,7 @@ class blogController {
 
 }
 ```
-######**>> Flash Back:**  Use the `controller_rust_object` config option to change this variable name.
+######**[>> Flash Back:](https://github.com/DanielSpeir/Rust#controller_rust_object)**   Use the `controller_rust_object` config option to change this variable name.
 
 ### Serving Routes
 
@@ -964,7 +965,7 @@ Index Route file: '_index.php'
 All Route file: '_all.php'
 Otherwise Route file: '_otherwise.php'
 
-######**>> Flash Back:** these pre-defined file names can be customized with the `index_route_file`, `all_route_file`, and `otherwise_route_file` config options.
+######**[>> Flash Back:](https://github.com/DanielSpeir/Rust#config)**  these pre-defined file names can be customized with the `index_route_file`, `all_route_file`, and `otherwise_route_file` config options.
 
 Instead of Sterile routes being auto-namespaced, they are instead "auto-routed". 
 
