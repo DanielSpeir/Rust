@@ -35,12 +35,12 @@ $router->route('blog/new', function(){
 $router->route('blog/:id', function(){
 
   $this->response(function($id){
-    return $this->renderView('blog-single', $id);
+    return $this->renderView('blog-single', compact('id'));
   });
   
 });
 
-// Build routes and serve to end user
+// Serve routes
 $router->serve();
 
 ```
@@ -51,7 +51,7 @@ $router->serve();
 ----
 ### The Route Scope
 
-The 'route' method accepts a minimum of two arguments: the Route Path, and the Route Action. The Route Action can take the form of a string, which the router would simply print, or a Closure object, which the router would fire. 
+The 'route' method accepts a minimum of two arguments: the Route Path, and the Route Action. The Route Action can take the form of a string, which the router would simply print, or a Closure object, which the router would call. 
 
 ##### Basic String Return
 ```php
@@ -103,7 +103,7 @@ The complete list of Response Methods is:
 * `beforeChildren()`
 * `controller()`
 
-###### **>> Flash Forward:** The controller method is not so much a Response Method, as it is a Response Method *manipulator*. More on this later.
+###### **>> Flash Forward:** The controller method is not so much a Response Method, as it is a Response Method *manipulator*. 
 
 ##### Example Usage
 ```php
@@ -132,17 +132,17 @@ The complete list of Response Methods is:
 
 In the first example, we use Rust's 'renderView' function to send a view file to the 'blog' Route on a Get Request. 
 
-In the second example, we employ two different methods to manually print a string inside the Response Method Scope. The first is to simply echo it, and the second is to return it. Every Response Method can, but is not required, to return a value. A null or true return will always render the Route as expected; however, a false return will render the "otherwise" Route and throw a 404 response.
+In the second example, we employ two different methods to manually print a string inside the Response Method Scope for a Post Request. The first is to simply echo it, and the second is to return it. Every Response Method can, but is not required, to return a value. A null or true return will always render the Route as expected; however, a false return will render the "otherwise" Route and throw a 404 response.
 
 The third example passes a string argument to the delete method, which is the equivalent of manually returning a string within a Closure object.
 
-#### Method Overview: get, post, put, patch, and delete
-Only one of the REST methods (get, post, put, patch, and delete) are rendered at a time. Rust determines which one to serve up by matching it to the server's Request Method variable at the time of render. This allows for the building of RESTful APIs.
+#### Method Overview: get(), post(), put(), patch(), and delete()
+Only one of the REST methods (get, post, put, patch, and delete) are rendered at a time. Rust determines which one to serve up by matching it to the server's Request Method variable at the time of render. This allows for the building of RESTful endpoints.
 
 #### Method Overview: response
 The 'response' method is rendered in the absence of any other applicable request. For instance, if you were to define only a 'response' method within a Route Scope, then Rust would render that method for every request made to that Route, regardless of the Request Method. However, if you supplied both a 'get' and 'response' method, Rust would render the 'get' method on a Get Request, and the 'response' method on every remaining request type (post, put, patch, delete, etc.).
 
-#### Method overview:  before, beforeAll, beforeChildren
+#### Method overview:  before(), beforeAll(), beforeChildren()
 
 The 'before' methods are middleware functions that are rendered before all other requests to a Route. The 'beforeAll' and 'beforeChildren' function are restricted to use within a Parent Route Scope, while the 'before' method can be used in both a Parent Route Scope and Child Route Scope. These are especially useful, for example, in authenticating user access to an API endpoint before that endpoint is rendered.
 
@@ -175,7 +175,9 @@ In a Parent Route Scope, 'beforeAll' would render before both the Parent Route a
 ```
 
 #### Method Overview: controller
-The controller method is the only Response Method than can accept a maximum of two arguments. The first argument being the controller file, and the second being the controller class. The second argument is only required if the controller class name is different than the name of the controller file. Controllers are covered in more depth in the Reverse Routing section.
+The controller method is the only Response Method than can accept a maximum of two arguments. The first argument being the controller file, and the second being the controller class. The second argument is only required if the controller class name is different than the name of the controller file. 
+
+###### **>> Flash Forward:** Controllers are covered in more depth in the Reverse Routing section.
 
 ```php
   $router->route('blog', function(){
@@ -368,13 +370,13 @@ $router->store()->userId = 32;
 Once an item is stored, it can be passed to the 'store' function as an argument for retrieval. Passing the variable as an argument allows Rust to determine whether or not it is set and will return truthy or falsey based on the determination.
 
 ```php
-// Store an item
+// Retrieve an item
 echo $router->store('userId');
 ```
 
 Otherwise, retrieve it standard: 
 ```php
-// Store an item
+// Retrieve an item
 echo $router->store()->userId;
 ```
 The storage object can be cleaned and reset at any point using the cleanStorage function.
