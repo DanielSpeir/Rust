@@ -1,6 +1,6 @@
 # Rust [![Build Status](https://travis-ci.org/DanielSpeir/Rust.svg?branch=master)](https://travis-ci.org/DanielSpeir/Rust)
 
-Rust is a full-featured router for PHP 5.4+.
+Rust is a full-featured router for PHP 5.4+ with Reverse Routing and RESTful API support.
 
 ## Example Usage
 
@@ -312,9 +312,9 @@ In this example, if the less specific route were declared before the most specif
 ----
 ### Sterile Routes
 
-Sterile Routes within Rust are Routes than cannot declare Child Routes, and cannot be defined within Namespaces. There are two total:  the All Route, and Otherwise Route.
+Sterile Routes within Rust are Routes than cannot declare Child Routes, and cannot be defined within Namespaces. There are three total: the All Route, Otherwise Route, and Index Route.
 
-Sterile routes are prepended with a colon, and are inaccessible directly from the browser.
+With the exception of the Index Route, Sterile Routes are prepended with a colon, and are inaccessible directly from the browser.
 
 #### All Route
 The All Route is a middleware route that is rendered before *every* Route request in your application. 
@@ -351,7 +351,10 @@ $router->route(':otherwise', function(){
 
 Also like the ':all' route, the ':otherwise' route cannot be accessed via URI. When no Otherwise Route is defined, Rust falls back to a "Death Message", which can be configured via Rust's 'config' method.
 
-######**>> Flash Forward**: Rust configuration
+######**>> Flash Forward**: Use the `death_message` config option to customize your application's fallback error message.
+
+#### The Index Route 
+The Index Route, even though it is not prepended with a colon and can be accessed via URI, is still considered to be Sterile, since it cannot accept direct Child Routes or be defined within a Namespace.
 
 ----
 ###Rust Storage
@@ -658,8 +661,11 @@ $router->config([
 #### all_route_file, otherwise_route_file, index_route_file
 
 **Accepts**: string
+
 **Default**: all_route_file = '_all.php'
+
 **Default**: otherwise_route_file = '_otherwise.php'
+
 **Default**: index_route_file = '_index.php'
 
 The configuration options `all_route_file`, `otherwise_route_file`, and `index_route_file` allow you to define a specific filename you would like Rust's `serveFromDirectory()` method to use when building your All, Otherwise, and Index Routes. The default values are: 
@@ -669,17 +675,21 @@ The configuration options `all_route_file`, `otherwise_route_file`, and `index_r
 #### build_all
 
 **Accepts**: boolean
+
 **Default**: false
 
 The Rust routing class operates on a simple principal: build only what you need. Anytime a route from your application is requested, Rust builds the routes it deems necessary (these are called Relevant Routes), and then serves them to you. That is, if you've built a 'blog' route and an 'about_me' route, Rust only needs to have knowledge of one of these routes at any given time: the route requested via the URI. In the same vein, if you request the 'blog' route with a GET method, Rust doesn't need to have any knowledge of a POST or PUT method built within that route, as they are not being rendered or served. By employing this methodology, Rust is able to stay fast and efficient by building and supplying only the routes it deems relevant. 
 
 That said, the `build_all` configuration option overrides this principal in Rust. By setting this option to true, Rust will build all routes defined in your application, regardless of relevance. 
 
+
+
 ***Note***: *this is not recommended for a production application, as it puts an unnecessary expense on your server. Use `build_all` only in a development environment.*
 
 #### controller_directory
 
 **Accepts**: string
+
 **Default**: none
 
 The `controller_directory` option allows you to specify the directory from which your controllers will be loaded. The value provided to the option will be prepended to all controllers declared throughout your application's routes. 
@@ -700,6 +710,7 @@ $router->route('blog', function(){
 ####controller_rust_object
 
 **Accepts**: bool, string
+
 **Default**: 'rust'
 
 When using Rust's controller methods and reverse routing in your application, sometimes it's necessary to retrieve an instance of the Rust object within your controller class. By exposing a Rust object to your controllers, you're able to access all Rust Utility and Helper methods, as well as persist data within Rust's `store` object through your controllers. 
@@ -721,6 +732,7 @@ The `controller_rust_object` option allows you to configure the name of that var
 ####death_message
 
 **Accepts**: string
+
 **Default**: 'The requested route could not be rendered.'
 
 If for any reason a route is not able to be rendered, Rust will first look for an Otherwise Route to render in its place. If it can't find the Otherwise Route, it will fall back and print the `death_message` value. 
@@ -728,6 +740,7 @@ If for any reason a route is not able to be rendered, Rust will first look for a
 ####dev
 
 **Accepts**: boolean
+
 **Default**: false
 
 Rust is built to be a graceful routing system, and as such, Rust will always search for a way to gracefully die in the event of an error. For instance, if you were to use a Utility Function, which are confined to use only within a Response Method, outside of said method, Rust would simply ignore the declaration and continue through the build or render without a hiccup. However, In some cases you may want Rust to throw warnings whenever a method is not used in the intention it was meant to be. Setting the `dev` option to true will allow that.
@@ -735,6 +748,7 @@ Rust is built to be a graceful routing system, and as such, Rust will always sea
 ####method_setter
 
 **Accepts**: string
+
 **Default**: ':method'
 
 Since HTML form elements can only accept either a GET or POST 'method' attribute value, we have to trick the form into submitting via another Request Method like put, patch, or delete. The `method_setter` option allows you to define what form input name should be used when determining what Request Method should be set, and subsequently rendered, when submitting a form.
@@ -748,6 +762,7 @@ Since HTML form elements can only accept either a GET or POST 'method' attribute
 ####render_all_before_otherwise
 
 **Accepts**: boolean
+
 **Default**: false
 
 Rust's All Route is a middleware route that is rendered before any other route in your application. The one exception to this rule is that the All Route, by default, will *not* render before the Otherwise Route. The `render_all_before_otherwise` option allows you to modify this behavior, if your application needs it.
@@ -755,6 +770,7 @@ Rust's All Route is a middleware route that is rendered before any other route i
 ####set_request_method
 
 **Accepts**: boolean
+
 **Default**: true
 
 This option allows you to define whether or not you would like to utilize the functionality Rust provides via the `method_setter` option. If this is set to false, the `method_setter` option becomes moot.
@@ -762,6 +778,7 @@ This option allows you to define whether or not you would like to utilize the fu
 ####unit_test
 
 **Accepts**: boolean
+
 **Default**: false
 
 The `unit_test` option is used exclusively when unit testing Rust. This options allows Rust to simulate certain behaviors that a browser would normally provide, and also prohibits Rust from halting a build or render after a graceful death in `dev` mode.
@@ -771,6 +788,7 @@ Using this option outside of its intention will produce undesirable results.
 ####view_directory
 
 **Accepts**: string
+
 **Default**: none
 
 The `view_directory` option allows you to specify the directory from which your views will be loaded. The value provided to the option will be prepended to all views declared throughout your application's routes. 
@@ -879,7 +897,22 @@ class blogController {
 ```
 ######**>> Flash Back:**  Use the `controller_rust_object` config option to change this variable name.
 
-### Individual Route Files
+### Serving Routes
+
+After all of your routes have been built, it's necessary to tell Rust when you're ready to serve them. You may do this with the `serve()` method at the end of your route declarations. Rust will only evaluate routes built between the instance retrieval `Rust::getRouter()` and the serve.
+
+```php
+$router = Rust::getRouter();
+
+// Build your routes
+
+$router->serve();
+
+```
+If you intend to serve individual route files using Rust's `serveFromDirectory()` method, you need not supply the `serve()` method after it, as it's implied.
+
+
+### Individual Route Files (serveFromDirectory)
 
 #### The Basics
 
@@ -923,7 +956,7 @@ The example above is exactly identical to declaring routes arguments within a Na
 #### Sterile Route Files
 As you know, in Rust there are 3 Sterile Routes. That is, routes that cannot have children and cannot be defined within a namespace. These 3 routes are: The Index Route ('/'), the All Route, and the Otherwise Route. Because of this restriction, these 3 routes are *not* auto-namespaced when using Rust's serveFromDirectory method. Also, because of the nature of these routes, they use pre-defined file names so Rust knows what to require and render when they are requested. 
 
-**All route files are required within a Route Scope.**
+**All Sterile Route files are required within a Route Scope.**
 
 Index Route file: '_index.php'
 All Route file: '_all.php'
