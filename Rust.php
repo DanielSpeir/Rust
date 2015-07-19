@@ -1636,8 +1636,11 @@ class Rust extends RustyTools
     /**
      * Determine the current request, find a suitable registered Route,
      * and dispatch accordingly.
+     *
+     * @param bool|false $mSimulateUri
+     * @return bool
      */
-    public function serve($bSimulateUriOrBool = false) {
+    public function serve($mSimulateUri = false) {
         // If user indicated the Request Method should be set using the methodSetter value,
         // do that here.
         if ($this->bSetRequestMethod) {
@@ -1659,8 +1662,8 @@ class Rust extends RustyTools
 
             // If this is a unit test and a simulation URI has been provided,
             // re-assign the server's Request URI variable to match the simulate.
-            if ($this->bUnitTest || $bSimulateUriOrBool) {
-                $_SERVER['REQUEST_URI'] = $bSimulateUriOrBool;
+            if ($this->bUnitTest || $mSimulateUri) {
+                $_SERVER['REQUEST_URI'] = $mSimulateUri;
             }
 
             $aUri = $this->getUri();
