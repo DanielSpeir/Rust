@@ -554,7 +554,6 @@ class Rust extends RustyTools
      * @return bool
      */
     private function render($mRoute = false, $bAll = false) {
-
         /*
         | Case 1: $mRoute is not set and both liveRoute and liveRouteParent
         |         functions return true. Therefore, render the route that
@@ -717,7 +716,7 @@ class Rust extends RustyTools
             $this->render(':all', true);
         }
 
-        if (isset($this->aRoutes[':otherwise'])) {
+        if (isset($this->aRoutes[':otherwise']) && count($this->aRoutes[':otherwise'])) {
             // Render will handle ob_end_flush
             return $this->render(':otherwise');
         } else {
@@ -1120,6 +1119,13 @@ class Rust extends RustyTools
                         $this->sAllRouteFile = $mValue . '.php';
                     } else {
                         $this->sAllRouteFile = $mValue;
+                    }
+                    break;
+                case 'index_route_file':
+                    if (!isset(pathinfo($mValue)['extension'])) {
+                        $this->sIndexRouteFile = $mValue . '.php';
+                    } else {
+                        $this->sIndexRouteFile = $mValue;
                     }
                     break;
                 case 'otherwise_route_file':
@@ -1566,13 +1572,28 @@ class Rust extends RustyTools
      * Serve Routes from a directory, as opposed to a single Route file.
      *
      * @param $sDirectory
+     * @return bool
      */
     public function serveFromDirectory($sDirectory) {
         $this->sAllRoutePath = $sDirectory . '/' . $this->sAllRouteFile;
         $this->sOtherwiseRoutePath = $sDirectory . '/' . $this->sOtherwiseRouteFile;
         $this->sIndexRoutePath = $sDirectory . '/' . $this->sIndexRouteFile;
-        $this->sRoutePath = $sDirectory . '/' . $this->getUriParent() . '.php';
 
+        /*
+        | Case 1: This is a root request ('/'), so sRoutePath is equal to
+        |         sIndexRoutePath.
+        | Case 2: Not a root request, so determine sRoutePath normally.
+        */
+        if ($this->rootRequest()){
+            $this->sRoutePath = $this->sIndexRoutePath;
+        } else {
+            $this->sRoutePath = $sDirectory . '/' . $this->getUriParent() . '.php';
+        }
+
+        /*
+        | Case 1: The directory supplied to the serveFromDirectory exists.
+        | Case 2: The directory supplied does not exist, pass to throwError.
+        */
         if (file_exists($sDirectory)) {
             if (file_exists($this->sAllRoutePath)) {
                 self::$oInstance->all(function(){
@@ -1586,10 +1607,16 @@ class Rust extends RustyTools
                 });
             }
 
+            /*
+            | Case 1: If this is a root request ('/'), then require sRoutePath
+            |         withing a Route Scope.
+            | Case 2: If this is not a root request, then require sRoutePath
+            |         within a Namespace Scope.
+            */
             if ($this->rootRequest()){
-                if (file_exists($this->sIndexRoutePath)) {
-                    self::$oInstance->route('/', function(){
-                        require_once("$this->sIndexRoutePath");
+                if (file_exists($this->sRoutePath)) {
+                    self::$oInstance->index(function(){
+                        require_once("$this->sRoutePath");
                     });
                 }
             } else {
